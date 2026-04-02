@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎙️ VedaVoice (Smart Khata) - Frontend
 
-## Getting Started
+VedaVoice is an AI-powered, voice-first ledger (Khata) application designed for modern shopkeepers and small businesses. It allows users to log transactions purely through Hinglish voice commands, eliminating the friction of manual data entry.
 
-First, run the development server:
+This repository contains **only the Next.js Frontend**. The NLP extraction model is deployed via a separate Hugging Face Spaces microservice.
+
+---
+
+## 🌟 Key Features
+
+- **Voice-to-Ledger Engine:** Connects to a custom NLP model (VedaVoice-NER) to instantly parse Hinglish commands.
+- **High-Fidelity UI/UX:** Stunning, responsive Next.js frontend built with Tailwind CSS, utilizing glassmorphism, fluid micro-animations, and Material Design 3 palettes.
+- **Real-time Analytics:** Breathtaking metric charts and weekly tracking modules.
+- **WhatsApp Integration:** 1-click WhatsApp reminders for pending Udhaar recoveries directly from the dashboard.
+- **Robust Authentication:** Supabase-powered OAuth (Google) and Email/Password flows securely sandboxed behind Next.js Middleware.
+
+## 🏗️ Architecture Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Styling:** Tailwind CSS + Material Symbols
+- **Database & Auth:** Supabase (PostgreSQL + RLS Policies)
+
+## 🚀 Running Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+*(Runs on `http://localhost:3000`)*
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ensure you have your `.env.local` configured with the Supabase keys and your `FASTAPI_URL` pointing to the live NLP model.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛑 STRICT LICENSE WARNING
 
-## Learn More
+**WARNING: This repository is protected by a Custom Non-Commercial Educational License.**
 
-To learn more about Next.js, take a look at the following resources:
+This code, architecture, and its UI designs are provided strictly for **personal study and review only**. 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 🚫 **No Commercial Use:** You may not monetize, host, or integrate this code into a business product.
+- 🚫 **No Competitive Use:** You are strictly prohibited from duplicating, cloning, or submitting this project to hackathons, competitions, or incubators. 
+- 🚫 **No Plagiarism:** Representing this codebase as your own work is explicitly illegal.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+By viewing or downloading this repository, you legally agree to the terms outlined in the exact `LICENSE` file provided at the root of this repository.
