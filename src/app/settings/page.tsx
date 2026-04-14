@@ -56,7 +56,7 @@ export default function SettingsPage() {
         <div className="flex justify-between items-center px-6 md:px-8 py-6">
           <div>
             <h1 className="text-white md:text-on-surface font-headline font-bold text-xl tracking-tight">Settings</h1>
-            <p className="text-indigo-200 md:text-on-surface-variant text-sm font-medium">Apni dukaan ki details</p>
+            <p className="text-indigo-200 md:text-on-surface-variant text-sm font-medium">Company Details</p>
           </div>
           <div className="w-10 h-10 rounded-full md:hidden overflow-hidden border-2 border-white/20">
             {auth?.avatarUrl ? (
@@ -64,7 +64,7 @@ export default function SettingsPage() {
             ) : (
               <div className="w-full h-full bg-indigo-500 flex items-center justify-center
                 text-white font-headline font-bold text-sm">
-                {auth?.name?.[0]?.toUpperCase() ?? 'D'}
+                {auth?.name?.[0]?.toUpperCase() ?? 'T'}
               </div>
             )}
           </div>
@@ -77,21 +77,21 @@ export default function SettingsPage() {
         <section className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/10">
           <div className="flex items-center gap-3 mb-6">
             <div className="bg-primary/10 p-2 rounded-full">
-              <span className="material-symbols-outlined text-primary">storefront</span>
+              <span className="material-symbols-outlined text-primary">business_center</span>
             </div>
-            <h2 className="font-headline font-bold text-on-surface">Dukaan ki Profile</h2>
+            <h2 className="font-headline font-bold text-on-surface">Contractor Profile</h2>
           </div>
 
           <div className="space-y-5">
             <div>
               <label className="font-label text-[10px] font-bold text-outline tracking-wider uppercase block mb-1.5 px-1">
-                Dukaan ka Naam
+                Company Name
               </label>
               <input
                 type="text"
                 value={shopName}
                 onChange={e => setShopName(e.target.value)}
-                placeholder="Sharma General Store"
+                placeholder="Sharma Construction Co."
                 className="w-full bg-surface-container-low rounded-xl py-3.5 px-4
                   outline-none focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest
                   text-on-surface font-medium transition-all"
@@ -100,7 +100,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="font-label text-[10px] font-bold text-outline tracking-wider uppercase block mb-1.5 px-1">
-                Aapka Naam
+                Thekedar Name
               </label>
               <input
                 type="text"

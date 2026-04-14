@@ -3,11 +3,13 @@
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/',          label: 'Home',      icon: 'home'         },
-  { href: '/khata',     label: 'Khata',     icon: 'menu_book'    },
-  { href: '/customers', label: 'Customers', icon: 'group'        },
-  { href: '/analytics', label: 'Analytics', icon: 'insert_chart' },
-  { href: '/settings',  label: 'Settings',  icon: 'settings'     },
+  { href: '/',          label: 'Home',        icon: 'mic'           },
+  { href: '/hajiri',    label: 'Hajiri',      icon: 'fact_check'    },
+  { href: '/workers',   label: 'Mazdoor',     icon: 'engineering'   },
+  { href: '/saathi',    label: 'Saathi AI',   icon: 'smart_toy'     },
+  { href: '/safety',    label: 'Site Safety', icon: 'shield'        },
+  { href: '/khata',     label: 'Len-den',     icon: 'receipt_long'  },
+  { href: '/settings',  label: 'Settings',    icon: 'settings'      },
 ]
 
 export default function Sidebar() {
@@ -23,7 +25,7 @@ export default function Sidebar() {
           <h1 className="font-headline font-extrabold text-xl text-white tracking-tight">
             VedaVoice
           </h1>
-          <p className="text-indigo-300 text-xs mt-0.5">Smart Khata</p>
+          <p className="text-indigo-300 text-xs mt-0.5">Site Automation</p>
         </div>
         <nav className="flex-1 px-3 py-6 space-y-1">
           {navItems.map(item => {

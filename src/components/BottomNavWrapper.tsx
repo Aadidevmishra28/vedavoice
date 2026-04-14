@@ -4,11 +4,11 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const navItems = [
-  { href: '/',          label: 'Home',      icon: 'home'          },
-  { href: '/khata',     label: 'Khata',     icon: 'menu_book'     },
-  { href: '/customers', label: 'Customers', icon: 'group'         },
-  { href: '/analytics', label: 'Analytics', icon: 'insert_chart'  },
-  { href: '/settings',  label: 'Settings',  icon: 'settings'      },
+  { href: '/',        label: 'Home',    icon: 'mic'         },
+  { href: '/hajiri',  label: 'Hajiri',  icon: 'fact_check'  },
+  { href: '/workers', label: 'Mazdoor', icon: 'engineering' },
+  { href: '/saathi',  label: 'Saathi',  icon: 'smart_toy'   },
+  { href: '/safety',  label: 'Safety',  icon: 'shield'      },
 ]
 
 export default function BottomNavWrapper() {

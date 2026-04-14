@@ -4,8 +4,8 @@ import BottomNavWrapper from '@/components/BottomNavWrapper'
 import Sidebar from '@/components/Sidebar'
 
 export const metadata: Metadata = {
-  title:       'VedaVoice — Apni Dukaan Ka Hisaab',
-  description: 'Apni dukaan ka hisaab, awaaz se',
+  title:       'VedaVoice — Payroll & Site Safety',
+  description: 'Voice-First Payroll & Duality Safety AI',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
