@@ -6,8 +6,8 @@ import { Transaction } from '@/types'
 import TxnItem from './TxnItem'
 
 export default function LedgerList({
-  transactions, loading
-}: { transactions: Transaction[]; loading: boolean }) {
+  transactions, loading, onDelete
+}: { transactions: Transaction[]; loading: boolean; onDelete?: (id: string) => void }) {
   if (loading) return (
     <div className="space-y-6 mt-2">
       {[1,2,3].map(i => (
@@ -34,7 +34,7 @@ export default function LedgerList({
 
   return (
     <div className="space-y-6">
-      {transactions.map(txn => <TxnItem key={txn.id} txn={txn} />)}
+      {transactions.map(txn => <TxnItem key={txn.id} transaction={txn} onDelete={onDelete} />)}
     </div>
   )
 }

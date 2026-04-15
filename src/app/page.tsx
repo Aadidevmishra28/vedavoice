@@ -13,6 +13,7 @@ import { logVoiceEntry } from "@/lib/voiceLog";
 import MicButton from "@/components/MicButton";
 import SummaryStrip from "@/components/SummaryStrip";
 import LedgerList from "@/components/LedgerList";
+import TxnItem from "@/components/TxnItem";
 type Status = "idle" | "listening" | "processing" | "disambiguating" | "confirming" | "saved" | "error";
 
 const statusLabel: Record<Status, string> = {
@@ -205,133 +206,91 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-6 space-y-8">
+      <main className="max-w-7xl mx-auto px-6 md:px-8 py-8">
+        <div className="asymmetric-grid">
+          
+          {/* Column 1: Financials & Ledger */}
+          <div className="space-y-10 min-w-0">
+            {/* Contextual Header */}
+            <div className="asymmetric-header">
+              <h1 className="text-3xl font-headline font-extrabold text-on-surface tracking-tight leading-none mb-1">
+                Namaste, {auth?.name?.split(' ')[0] ?? 'Thekedar'} 🙏
+              </h1>
+              <p className="text-xs font-label font-bold text-outline-variant uppercase tracking-[0.2em]">
+                {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+            </div>
 
-        {/* Summary bento cards */}
-        <SummaryStrip
-          totalUdhaar={ledger.totalUdhaar}
-          todayMila={ledger.todayMila}
-          uniqueCustomers={ledger.uniqueCustomers}
-        />
+            {/* Glass Dashboard Card */}
+            <SummaryStrip stats={ledger.stats} />
 
-        {/* Mic hero section */}
-        <section className="flex flex-col items-center justify-center py-8 space-y-8">
-          <MicButton listening={listening} status={status} onTap={handleMicTap} />
-
-          {/* Status + transcript */}
-          <div className="text-center space-y-3 w-full">
-            <p className={`font-headline font-bold text-lg tracking-tight
-              ${status === 'error' ? 'text-error' : 'text-primary'}`}>
-              {status === 'error' ? errorMsg : statusLabel[status]}
-            </p>
-            {(transcript || lastText) && (
-              <div className="bg-surface-container-low p-4 rounded-xl max-w-sm mx-auto">
-                <p className="italic text-on-surface-variant text-sm leading-relaxed">
-                  "{transcript || lastText}"
-                </p>
+            {/* Recent Table / Ledger */}
+            <section className="space-y-6">
+              <div className="flex justify-between items-end">
+                <h2 className="text-xl font-headline font-black text-on-surface tracking-tight uppercase">Recent Hisaab</h2>
+                <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline">View All</button>
               </div>
-            )}
+              <LedgerList
+                transactions={ledger.transactions.slice(0, 5)}
+                loading={ledger.loading}
+                onDelete={ledger.deleteTransaction}
+              />
+            </section>
           </div>
 
-          {/* Result pills */}
-          {result && status !== 'disambiguating' && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {result.name && (
-                <span className="px-4 py-2 bg-primary text-white text-xs font-bold font-label rounded-full uppercase tracking-tight">
-                  {result.name} {result.qualifier ? `(${result.qualifier})` : ''}
+          {/* Column 2: Interaction & Discovery */}
+          <div className="space-y-10">
+            {/* Mic Hero Container */}
+            <div className="bg-white rounded-[3rem] p-10 shadow-sm border border-outline-variant/10 flex flex-col items-center justify-center text-center space-y-6 min-h-[400px]">
+              <div className="space-y-2">
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm
+                  ${status === 'error' ? 'bg-error text-white' : 'bg-primary text-white'}`}>
+                  {status === 'idle' ? 'Live Assistant' : statusLabel[status]}
                 </span>
+                <p className="text-outline text-xs font-medium">Kaise help karun? Bolo: "Rahul ko 500 diye"</p>
+              </div>
+
+              <MicButton listening={listening} status={status} onTap={handleMicTap} />
+
+              {(transcript || lastText) && (
+                <div className="w-full bg-surface-container-low/50 p-4 rounded-2xl border border-dashed border-primary/20">
+                  <p className="italic text-on-surface-variant text-sm font-medium leading-relaxed font-body">
+                    "{transcript || lastText}"
+                  </p>
+                </div>
               )}
-              {result.amount_int !== null && (
-                <span className="px-4 py-2 bg-secondary-container text-on-secondary-container text-xs font-bold font-label rounded-full uppercase tracking-tight">
-                  {result.unit === 'days' ? `${result.amount_int} day` : `₹${result.amount_int.toLocaleString('en-IN')}`}
-                </span>
-              )}
-              <span className={`px-4 py-2 text-xs font-bold font-label rounded-full uppercase tracking-tight
-                ${result.action === 'UDHAAR' || result.action === 'ADVANCE' || result.action === 'MATERIAL'
-                  ? 'bg-error text-white'
-                  : result.action === 'ATTENDANCE' ? 'bg-gray-500 text-white' : 'bg-tertiary-container text-on-tertiary-container'}`}>
-                {result.action}
-              </span>
-            </div>
-          )}
 
-          {/* Confirm / Cancel */}
-          {status === "confirming" && result && (
-            <div className="w-full space-y-4 pt-4 max-w-sm">
-              <button
-                onClick={handleConfirm}
-                className="w-full py-4 bg-primary text-white font-headline font-bold rounded-xl
-                  active:scale-95 transition-transform flex items-center justify-center gap-2"
-                style={{ boxShadow: '0 8px 20px rgba(42,20,180,0.25)' }}
-              >
-                Haan, sahi hai
-                <span className="material-symbols-outlined text-xl">check_circle</span>
-              </button>
-              <button
-                onClick={handleCancel}
-                className="w-full py-2 text-on-surface-variant font-medium text-sm"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {status === "saved" && (
-            <p className="text-tertiary font-headline font-bold">✓ Likh diya!</p>
-          )}
-        </section>
-
-        {/* Disambiguation Bottom Sheet */}
-        {status === "disambiguating" && result && (
-          <div className="fixed inset-x-0 bottom-0 z-50 bg-surface rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] animate-slide-up border border-outline-variant pb-8 max-h-[80vh] overflow-y-auto">
-            <div className="w-12 h-1.5 bg-outline-variant/40 rounded-full mx-auto my-3" />
-            <div className="px-6 pb-4">
-              <h2 className="text-xl font-headline font-bold text-on-surface mb-6">
-                ⚠️ "{result.name}" se kaun?
-              </h2>
-              
-              <div className="flex flex-col">
-                {candidates.map(w => (
-                  <button 
-                    key={w.id}
-                    onClick={() => handleSelectCandidate(w)}
-                    className="w-full p-5 text-left text-lg border-b border-outline-variant/30 active:bg-surface-container transition-colors flex justify-between items-center"
+              {/* Action Buttons */}
+              {status === "confirming" && result && (
+                <div className="w-full flex gap-3 pt-2">
+                  <button
+                    onClick={handleConfirm}
+                    className="flex-1 py-4 bg-primary text-white font-headline font-black rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-xs uppercase tracking-widest"
                   >
-                    <div>
-                      <span className="font-semibold text-on-surface">{w.name}</span>
-                      {w.qualifier && <span className="text-outline ml-1 font-medium text-base">({w.qualifier})</span>}
-                    </div>
-                    {w.daily_rate && (
-                      <span className="text-sm font-label font-bold text-on-surface-variant bg-surface-container py-1 px-2 rounded-lg">
-                        ₹{w.daily_rate}/din
-                      </span>
-                    )}
+                    Confirm ✓
                   </button>
-                ))}
-                
-                <button 
-                  onClick={() => handleSelectCandidate("new")}
-                  className="w-full p-5 text-left text-lg text-primary font-bold active:bg-primary/10 transition-colors mt-2 rounded-xl"
-                >
-                  + Naya "{result.name}" {result.qualifier ? `(${result.qualifier})` : ''} banao
-                </button>
-              </div>
+                  <button
+                    onClick={handleCancel}
+                    className="px-6 py-4 bg-surface-container-highest text-on-surface-variant font-black rounded-2xl active:scale-95 transition-all text-xs uppercase"
+                  >
+                    X
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Recent transactions */}
-        <section className="space-y-6">
-          <div className="flex justify-between items-end">
-            <h2 className="text-xl font-headline font-bold text-on-surface">Abhi ke len-den</h2>
-            <span className="text-xs font-label font-bold text-primary uppercase tracking-widest">Sab dekho</span>
+            {/* Visual Audit Trail */}
+            <section className="space-y-5">
+              <h2 className="text-xs font-black text-outline uppercase tracking-widest px-2">Voice Audit Trail</h2>
+              <div className="space-y-3">
+                {ledger.transactions.slice(0, 2).map(t => (
+                  <TxnItem key={t.id} transaction={t} />
+                ))}
+              </div>
+            </section>
           </div>
-          <LedgerList
-            transactions={ledger.transactions.slice(0, 5)}
-            loading={ledger.loading}
-          />
-        </section>
 
+        </div>
       </main>
     </div>
   );

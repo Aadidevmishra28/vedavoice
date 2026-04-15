@@ -183,47 +183,36 @@ export default function SaathiPage() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full bg-surface relative min-w-0">
+      <main className="flex-1 flex flex-col h-full bg-surface relative min-w-0">
         
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-outline-variant/20 flex items-center justify-between px-4 shrink-0 z-20">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
-              <span className="material-symbols-outlined">menu_open</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-lg leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-              </div>
-              <div>
-                <h1 className="text-sm font-headline font-bold text-on-surface leading-tight">Saathi</h1>
-                <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  Active Context
-                </p>
-              </div>
-            </div>
+        {/* Header Section */}
+        <section className="px-6 md:px-8 mt-8 shrink-0">
+          <div className="asymmetric-header">
+            <h1 className="font-headline text-4xl font-extrabold text-primary tracking-tight leading-none mb-2">Hisaab Assistant</h1>
+            <p className="font-label text-on-surface-variant text-sm uppercase tracking-widest font-semibold flex items-center gap-2">
+               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+               Connected to Payroll Engine
+            </p>
           </div>
-        </header>
+        </section>
 
         {/* Chat window */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 pb-40">
+        <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8 space-y-8 pb-40">
           
           {(activeSession?.messages.length === 0 || !activeSession) && (
-            <div className="flex flex-col items-center text-center mt-6 mb-2">
-              <div className="w-20 h-20 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6 shadow-sm border border-indigo-100">
-                <span className="material-symbols-outlined text-indigo-600 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+            <div className="flex flex-col items-center text-center mt-10">
+              <div className="w-24 h-24 rounded-3xl glass-card flex items-center justify-center mb-8 shadow-2xl">
+                <span className="material-symbols-outlined text-white text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>monitoring</span>
               </div>
-              <h2 className="font-headline font-bold text-2xl text-on-surface">Namaste, Thekedar Ji! 🙏</h2>
-              <p className="text-on-surface-variant text-sm mt-2 max-w-xs leading-relaxed">
-                Site planning, calculation ya worker payroll — kuch bhi poocho. Main aapka AI Saathi hun.
+              <h2 className="font-headline font-black text-3xl text-on-surface tracking-tight">How can I help with Hisaab?</h2>
+              <p className="text-on-surface-variant text-sm mt-4 max-w-sm font-medium leading-relaxed">
+                I can process attendance, calculate wages, and analyze your site's financial health.
               </p>
 
-              <div className="flex flex-wrap gap-2 justify-center mt-10 max-w-lg">
+              <div className="flex flex-wrap gap-3 justify-center mt-12 max-w-2xl">
                 {STARTER_PROMPTS.map(p => (
                   <button key={p} onClick={() => sendMessage(p)}
-                    className="px-4 py-2 bg-white border border-outline-variant/30 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-indigo-50 hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-95 shadow-sm">
+                    className="px-6 py-3 bg-white border border-outline-variant/30 rounded-2xl text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary-fixed hover:border-primary-fixed hover:text-primary transition-all active:scale-95 shadow-sm">
                     {p}
                   </button>
                 ))}
@@ -312,7 +301,7 @@ export default function SaathiPage() {
           </div>
         </div>
 
-      </div>
+      </main>
     </div>
   )
 }

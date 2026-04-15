@@ -136,127 +136,129 @@ export default function HajiriPage() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-
-      {/* Header */}
-      <header className="bg-indigo-700 sticky top-0 z-40 shadow-lg shadow-indigo-900/20">
-        <div className="px-6 py-4">
-          <h1 className="font-headline font-bold text-xl text-white">Aaj ki Hajiri</h1>
-          <p className="text-indigo-200 text-xs mt-0.5">{todayLabel()}</p>
-        </div>
-        <div className="flex divide-x divide-indigo-500/30 bg-indigo-800/60 px-2">
-          {[
-            { label: 'Hazir',       value: summary.present,                       color: 'text-green-300' },
-            { label: 'Half',        value: summary.half,                          color: 'text-amber-300' },
-            { label: 'Absent',      value: summary.absent,                        color: 'text-red-300'   },
-            { label: 'Aaj ki Kamai', value: `₹${todayWages.toLocaleString()}`,   color: 'text-indigo-200'},
-          ].map(s => (
-            <div key={s.label} className="flex-1 py-2.5 text-center">
-              <p className={`font-headline font-extrabold text-lg leading-none ${s.color}`}>{s.value}</p>
-              <p className="text-indigo-300 text-[9px] mt-0.5 uppercase tracking-wider font-bold">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </header>
-
-      <main className="px-4 mt-5 space-y-4 max-w-xl mx-auto">
-
-        {/* Voice Button */}
-        <div className="flex flex-col items-center gap-2">
-          <button onClick={startVoice} disabled={isListening || !!currentAmbiguity}
-            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all
-              ${isListening ? 'bg-red-500 animate-pulse scale-110' : 'bg-indigo-600 active:scale-95'}`}
-            style={{ boxShadow: isListening ? '0 0 20px rgba(239,68,68,0.5)' : '0 8px 25px rgba(67,56,202,0.4)' }}>
-            <span className="material-symbols-outlined text-white text-3xl"
-              style={{ fontVariationSettings: "'FILL' 1" }}>mic</span>
-          </button>
-          {voiceFeedback
-            ? <p className="text-sm font-medium text-on-surface-variant text-center">{voiceFeedback}</p>
-            : <p className="text-xs text-outline">Bolke hajiri lagao</p>
-          }
+      
+      {/* Hero Section / Context */}
+      <section className="mb-10 px-6 md:px-8 mt-8">
+        <div className="asymmetric-header">
+          <h1 className="font-headline text-4xl font-extrabold text-primary tracking-tight leading-none mb-2">Daily Hajiri</h1>
+          <p className="font-label text-on-surface-variant text-sm uppercase tracking-widest font-semibold">{todayLabel()}</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => markAll('present')}
-            className="flex items-center justify-center gap-2 py-3.5 bg-green-600 text-white rounded-2xl font-headline font-bold text-sm active:scale-95 transition-transform">
-            <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            Sab Present
-          </button>
-          <button onClick={() => markAll('absent')}
-            className="flex items-center justify-center gap-2 py-3.5 bg-surface-container border border-outline-variant text-on-surface-variant rounded-2xl font-headline font-bold text-sm active:scale-95 transition-transform">
-            <span className="material-symbols-outlined text-lg">cancel</span>
-            Sab Absent
-          </button>
-        </div>
-
-        {/* Empty state */}
-        {workerViews.length === 0 && (
-          <div className="text-center py-16">
-            <span className="material-symbols-outlined text-5xl text-outline/30">group</span>
-            <p className="text-outline font-medium mt-3">Koi worker register nahi hai</p>
-            <p className="text-outline text-sm mt-1">Pehle Mazdoor tab mein workers add karo</p>
+        {/* Attendance Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="col-span-2 p-6 glass-card rounded-2xl text-white shadow-xl">
+             <span className="font-label text-[10px] uppercase font-bold text-white/60 tracking-widest block mb-1">Aaj ka Kharcha (Est.)</span>
+             <h2 className="font-headline text-4xl font-black">₹{todayWages.toLocaleString('en-IN')}</h2>
+             <div className="mt-4 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-secondary-fixed w-[45%] rounded-full opacity-80" />
+             </div>
           </div>
-        )}
+          <div className="p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+            <span className="font-label text-[10px] uppercase font-bold text-outline tracking-widest block mb-1">Hazir Mazdoor</span>
+            <span className="font-headline text-3xl font-black text-secondary">{summary.present + summary.half}</span>
+          </div>
+          <div className="p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+            <span className="font-label text-[10px] uppercase font-bold text-outline tracking-widest block mb-1">Gar-Hazir (Absent)</span>
+            <span className="font-headline text-3xl font-black text-error">{summary.absent}</span>
+          </div>
+        </div>
+      </section>
 
-        {/* Worker Cards */}
-        <div className="space-y-3">
+      <main className="px-6 md:px-8 max-w-7xl mx-auto space-y-8">
+        {/* Bulk Actions & Voice */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-surface-container-low p-6 rounded-[2rem] border border-outline-variant/20">
+          <div className="flex items-center gap-6">
+            <button onClick={startVoice} disabled={isListening || !!currentAmbiguity}
+              className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500
+                ${isListening ? 'bg-error scale-110 shadow-error/40' : 'bg-primary shadow-primary/40 active:scale-95'}`}>
+              <span className="material-symbols-outlined text-white text-3xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}>{isListening ? 'graphic_eq' : 'mic'}</span>
+            </button>
+            <div>
+              <p className="font-headline font-black text-on-surface leading-none mb-1">
+                {isListening ? 'Listening...' : 'Record Attendance'}
+              </p>
+              <p className="text-outline text-xs italic">
+                {voiceFeedback || 'Tap to mark multiple workers via voice'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 w-full md:w-auto">
+            <button onClick={() => markAll('present')}
+              className="flex-1 md:px-6 py-3 bg-secondary text-white rounded-xl font-headline font-black text-xs uppercase tracking-widest shadow-lg shadow-secondary/20 hover:shadow-secondary/40 transition-all">
+              Sab Present
+            </button>
+            <button onClick={() => markAll('absent')}
+              className="flex-1 md:px-6 py-3 bg-surface-container-highest text-on-surface-variant rounded-xl font-headline font-black text-xs uppercase tracking-widest transition-all">
+              Sab Absent
+            </button>
+          </div>
+        </div>
+
+        {/* Worker Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
           {workerViews.map(({ worker, status, wageToday, outstanding, netPayable }) => {
             const cfg = STATUS_CONFIG[status]
-            const advanceCovered = wageToday > 0 && netPayable <= 0
+            const isMarked = status !== 'unmarked'
+            const hasRate = !!worker.daily_rate
+            
             return (
               <div key={worker.id}
-                className="bg-white rounded-2xl border border-outline-variant/20 shadow-sm overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                    <span className="font-headline font-extrabold text-indigo-700 text-lg">
-                      {worker.name[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-headline font-bold text-on-surface">
-                      {worker.name}
-                      {worker.qualifier && <span className="text-outline text-xs font-normal ml-1.5">({worker.qualifier})</span>}
-                    </p>
-                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
-                      <span className="text-xs text-outline">₹{worker.daily_rate ?? '?'}/din</span>
-                      {status !== 'unmarked' && status !== 'absent' && (
-                        <span className="text-xs text-green-600 font-bold">+₹{wageToday} aaj</span>
-                      )}
-                      {outstanding > 0 && (
-                        <span className="text-xs text-orange-500 font-bold">-₹{outstanding} advance baaki</span>
-                      )}
-                    </div>
-                  </div>
-                  {status !== 'unmarked' && status !== 'absent' ? (
-                    <div className={`shrink-0 text-center px-3 py-1.5 rounded-xl border ${
-                      advanceCovered ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
-                      <p className={`font-headline font-extrabold text-sm ${advanceCovered ? 'text-blue-600' : 'text-green-700'}`}>
-                        {advanceCovered ? '✓' : `₹${netPayable}`}
-                      </p>
-                      <p className="text-[9px] font-bold uppercase tracking-wide text-outline">
-                        {advanceCovered ? 'Covered' : 'Dena hai'}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${cfg.light}`}>
-                      {cfg.label}
-                    </span>
-                  )}
+                className={`bg-white rounded-3xl overflow-hidden ghost-border shadow-sm flex flex-col transition-all hover:shadow-md
+                  ${isMarked ? 'border-primary/20' : ''}`}>
+                
+                <div className="p-5 flex items-start gap-4">
+                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-headline font-black text-lg shrink-0
+                     ${isMarked ? 'bg-primary text-white' : 'bg-surface-container-low text-outline'}`}>
+                     {worker.name[0].toUpperCase()}
+                   </div>
+                   <div className="flex-1 min-w-0">
+                     <h3 className="font-headline font-extrabold text-on-surface leading-tight truncate">
+                       {worker.name}
+                     </h3>
+                     <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${!hasRate ? 'text-error animate-pulse' : 'text-outline-variant'}`}>
+                       {worker.qualifier || 'Labour'} • {hasRate ? `₹${worker.daily_rate}/din` : 'RATE SET KARO ⚠️'}
+                     </p>
+                   </div>
+                   {isMarked && (
+                     <span className={`shrink-0 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-tight
+                       ${status === 'present' ? 'bg-secondary-container text-secondary' : status === 'half' ? 'bg-amber-100 text-amber-700' : 'bg-error-container text-error'}`}>
+                       {cfg.label}
+                     </span>
+                   )}
                 </div>
-                {/* Tap Toggles */}
-                <div className="grid grid-cols-3 border-t border-outline-variant/15">
+
+                {/* Bottom Payout Info Card - Clean View */}
+                {isMarked && status !== 'absent' && (
+                  <div className="mx-5 mb-4 p-3 bg-surface-container-lowest rounded-2xl border border-outline-variant/10 flex justify-between items-center animate-in fade-in slide-in-from-top-1">
+                    <div>
+                      <p className="text-[9px] font-black text-outline uppercase tracking-tight">Aaj ki Mazdoori</p>
+                      <p className="text-sm font-headline font-black text-secondary">₹{wageToday}</p>
+                    </div>
+                    {outstanding > 0 && (
+                      <div className="text-right">
+                        <p className="text-[9px] font-black text-outline uppercase tracking-tight">Purana Advance</p>
+                        <p className="text-sm font-headline font-black text-error">₹{outstanding}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Attendance Toggles */}
+                <div className="mt-auto grid grid-cols-3 border-t border-outline-variant/10 bg-slate-50/50">
                   {(['present', 'half', 'absent'] as AttendanceStatus[]).map(s => {
                     const c = STATUS_CONFIG[s]
                     const isActive = status === s
                     return (
                       <button key={s} onClick={() => markAttendance(worker.id, s)}
-                        className={`py-2.5 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase transition-all
-                          ${isActive ? c.color : 'text-outline hover:bg-surface-container'}`}>
-                        <span className="material-symbols-outlined text-[16px]"
-                          style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}` }}>
+                        className={`py-4 flex flex-col items-center justify-center gap-1 transition-all
+                          ${isActive ? 'bg-white shadow-inner font-black' : 'text-outline hover:bg-white/40'}`}>
+                        <span className="material-symbols-outlined text-lg"
+                          style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}`, color: isActive ? 'var(--color-primary)' : 'inherit' }}>
                           {c.icon}
                         </span>
-                        {c.label}
+                        <span className="text-[8px] font-black uppercase tracking-tight">{c.label}</span>
                       </button>
                     )
                   })}

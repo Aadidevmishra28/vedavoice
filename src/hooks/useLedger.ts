@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Transaction, ExtractResult } from '@/types'
+import { calculateFinance, calculateSiteSafety, calculateTrend, AttendanceRecord } from '@/lib/finance'
 
 export function useLedger(userId?: string) {
     const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -20,7 +21,6 @@ export function useLedger(userId?: string) {
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
-            .limit(50)
 
         if (!error && data) setTransactions(data)
         setLoading(false)
@@ -99,6 +99,80 @@ export function useLedger(userId?: string) {
     }
 
 
+    // ── Integrated Labour Stats ───────────────────────────────────────────
+    const [stats, setStats] = useState({ 
+        workValue: 0, 
+        paid: 0, 
+        advances: 0, 
+        netDue: 0, 
+        workers: 0, 
+        safety: 100, 
+        trend: 0 
+    })
+
+    const calculateLabourStats = useCallback(async () => {
+        if (!userId) return
+
+        const now = new Date()
+        const todayStr = now.toISOString().split('T')[0]
+        
+        const startOfThisWeek = new Date(now)
+        startOfThisWeek.setDate(now.getDate() - now.getDay())
+        startOfThisWeek.setHours(0,0,0,0)
+
+        const startOfLastWeek = new Date(startOfThisWeek)
+        startOfLastWeek.setDate(startOfThisWeek.getDate() - 7)
+
+        // 1. Fetch Workers
+        const { data: wk } = await supabase.from('workers').select('id, name, daily_rate').eq('user_id', userId)
+        if (!wk) return
+
+        // 2. Fetch All Attendance (for Baki) and All Transactions (for Baki)
+        const [{ data: allAtt }, { data: allTxn }] = await Promise.all([
+          supabase.from('attendance').select('*').eq('user_id', userId),
+          supabase.from('transactions').select('*').eq('user_id', userId)
+        ])
+
+        const att = allAtt || []
+        const txn = allTxn || []
+
+        // 3. Weekly Filters
+        const thisWeekAtt = att.filter(a => a.date >= startOfThisWeek.toISOString().split('T')[0])
+        const lastWeekAtt = att.filter(a => a.date >= startOfLastWeek.toISOString().split('T')[0] && a.date < startOfThisWeek.toISOString().split('T')[0])
+        
+        const thisWeekTxn = txn.filter(t => t.created_at >= startOfThisWeek.toISOString())
+        const lastWeekTxn = txn.filter(t => t.created_at >= startOfLastWeek.toISOString() && t.created_at < startOfThisWeek.toISOString())
+
+        // 4. Lifetime Calculations (The "Baki")
+        const lifetime = calculateFinance(wk, att as AttendanceRecord[], txn as Transaction[])
+        
+        // 5. Weekly Calculations (The "Mazdoori")
+        const current = calculateFinance(wk, thisWeekAtt as AttendanceRecord[], thisWeekTxn as Transaction[])
+        const previous = calculateFinance(wk, lastWeekAtt as AttendanceRecord[], lastWeekTxn as Transaction[])
+        
+        // Site Safety (Today's check-ins)
+        const todayAtt = att.filter(a => a.date === todayStr)
+        const presentToday = todayAtt.filter(a => a.status === 'present' || a.status === 'half').length
+        const safety = calculateSiteSafety(wk.length, presentToday)
+        
+        // Trend (Value of work done this week vs last)
+        const trend = calculateTrend(current.workValue, previous.workValue)
+
+        setStats({ 
+            workValue: current.workValue, 
+            paid: current.paidOut, // Show weekly paid for coverage bar
+            advances: lifetime.advances, 
+            netDue: lifetime.netDue,
+            workers: wk.length,
+            safety,
+            trend
+        })
+    }, [userId])
+
+    useEffect(() => {
+        calculateLabourStats()
+    }, [calculateLabourStats, transactions]) // Re-calc when txns change
+
     // ── Summary stats ─────────────────────────────────────────────────────────
     const totalUdhaar = transactions
         .filter(t => t.action === 'UDHAAR' || t.action === 'ADVANCE' || t.action === 'MATERIAL')
@@ -111,6 +185,16 @@ export function useLedger(userId?: string) {
 
     const uniqueCustomers = new Set(transactions.map(t => t.name)).size
 
+    // ── Delete Transaction ──────────────────────────────────────────────────
+    async function deleteTransaction(id: string) {
+        setTransactions(prev => prev.filter(t => t.id !== id))
+        const { error } = await supabase.from('transactions').delete().eq('id', id)
+        if (error) {
+            fetchTransactions() // Rollback on error
+            throw error
+        }
+    }
+
     return {
         transactions,
         loading,
@@ -119,5 +203,8 @@ export function useLedger(userId?: string) {
         totalUdhaar,
         todayMila,
         uniqueCustomers,
+        stats, // New integrated stats: { earned, paid, advances, workers }
+        deleteTransaction,
+        refreshStats: calculateLabourStats
     }
 }

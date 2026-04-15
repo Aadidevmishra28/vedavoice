@@ -34,8 +34,8 @@ export function useAttendance(userId?: string | null) {
 
     const [{ data: workerData }, { data: attData }, { data: txnData }] = await Promise.all([
       supabase.from('workers').select('*').eq('user_id', userId).order('name'),
-      supabase.from('attendance').select('*').eq('user_id', userId).eq('date', today),
-      supabase.from('transactions').select('id,worker_id,name,action,amount').eq('user_id', userId)
+      supabase.from('attendance').select('*').eq('user_id', userId),
+      supabase.from('transactions').select('id,worker_id,name,action,amount,created_at').eq('user_id', userId)
     ])
 
     setWorkers(workerData || [])
@@ -85,41 +85,62 @@ export function useAttendance(userId?: string | null) {
   }, [attendance])
 
   const summary = useMemo(() => {
-    const present = attendance.filter(a => a.status === 'present').length
-    const half = attendance.filter(a => a.status === 'half').length
-    const absent = attendance.filter(a => a.status === 'absent').length
+    const todayAtt = attendance.filter(a => a.date === today)
+    const present = todayAtt.filter(a => a.status === 'present').length
+    const half = todayAtt.filter(a => a.status === 'half').length
+    const absent = todayAtt.filter(a => a.status === 'absent').length
     return { present, half, absent, unmarked: workers.length - present - half - absent }
-  }, [attendance, workers])
+  }, [attendance, workers, today])
 
   const todayWages = useMemo(() => {
     return workers.reduce((total, w) => {
-      const status = attendance.find(a => a.worker_id === w.id)?.status
-      if (!status || status === 'absent') return total
-      const multiplier = status === 'half' ? 0.5 : 1
+      const record = attendance.find(a => a.worker_id === w.id && a.date === today)
+      if (!record || record.status === 'absent') return total
+      const multiplier = record.status === 'half' ? 0.5 : 1
       return total + ((w.daily_rate || 0) * multiplier)
     }, 0)
-  }, [attendance, workers])
+  }, [attendance, workers, today])
 
   const workerViews: WorkerAttendanceView[] = useMemo(() => {
     return workers.map(w => {
-      const status = attendance.find(a => a.worker_id === w.id)?.status ?? 'unmarked'
+      const status = attendance.find(a => a.worker_id === w.id && a.date === today)?.status ?? 'unmarked'
       const multiplier = status === 'present' ? 1 : status === 'half' ? 0.5 : 0
       const wageToday = (w.daily_rate || 0) * multiplier
 
-      // Match by worker_id first, then fall back to name (even if another worker_id exists)
-      const workerTxns = transactions.filter(t =>
-        t.worker_id === w.id || t.name?.toLowerCase() === w.name.toLowerCase()
-      )
-      // Only ADVANCE transactions are deductible from today's daily wage
-      const pendingAdvances = workerTxns
-        .filter(t => t.action === 'ADVANCE')
-        .reduce((s: number, t: any) => s + Math.abs(t.amount || 0), 0)
+      // 1. Transactions for this worker - prioritize ID to prevent name leaks
+      const workerTxns = transactions.filter(t => {
+        if (t.worker_id) return t.worker_id === w.id
+        return t.name?.toLowerCase() === w.name.toLowerCase()
+      })
+      
+      // 2. Attendance history EXCEPT today
+      const pastAtt = attendance.filter(a => a.worker_id === w.id && a.date < today)
+      const pastEarned = pastAtt.reduce((sum, a) => {
+        const m = a.status === 'present' ? 1 : a.status === 'half' ? 0.5 : 0
+        return sum + ((w.daily_rate || 0) * m)
+      }, 0)
 
-      const netPayable = Math.max(0, wageToday - pendingAdvances)  // never go negative
+      // 3. Transactions EXCEPT today (approximate by created_at)
+      const pastTxns = workerTxns.filter(t => t.created_at.split('T')[0] < today)
+      const pastAdvanced = pastTxns.filter(t => t.action === 'ADVANCE' || t.action === 'UDHAAR').reduce((s, t) => s + t.amount, 0)
+      const pastPaid = pastTxns.filter(t => t.action === 'PAYMENT').reduce((s, t) => s + t.amount, 0)
 
-      return { worker: w, status, wageToday, outstanding: pendingAdvances, netPayable }
+      // 4. Opening Balance (Debt if negative)
+      const openingBalance = pastEarned - pastAdvanced - pastPaid
+      const openingDebt = openingBalance < 0 ? Math.abs(openingBalance) : 0
+
+      // 5. Today's Net Payable (Current Pay minus existing debt)
+      const netPayable = Math.max(0, wageToday + openingBalance)
+
+      return { 
+        worker: w, 
+        status, 
+        wageToday, 
+        outstanding: openingDebt, 
+        netPayable 
+      }
     })
-  }, [workers, attendance, transactions])
+  }, [workers, attendance, transactions, today])
 
   return { workers, attendance, workerViews, loading, markAttendance, markAll, getStatus, summary, todayWages, refresh: fetchAll }
 }

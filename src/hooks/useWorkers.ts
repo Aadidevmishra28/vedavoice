@@ -7,31 +7,41 @@ export interface WorkerSummary {
   totalDays: number        // sum of ATTENDANCE amounts
   totalAdvances: number    // sum of ADVANCE amounts (INR)
   totalPayments: number    // sum of PAYMENT amounts (INR)
+  earnedWages: number
   wagesDue: number         // (totalDays × daily_rate) - totalAdvances - totalPayments (Wait, actual payments map to wage reduction if advances map to wage reduction. Usually WagesDue = Earned Wages - Advances - Payments)
   lastSeen: string | null
 }
 
 export function useWorkers(userId?: string | null) {
   const [workers, setWorkers] = useState<Worker[]>([])
+  const [attendance, setAttendance] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchWorkers = useCallback(async () => {
-    if (!userId) { setLoading(false); return }
-    const { data, error } = await supabase
-      .from('workers')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-    
-    if (!error && data) {
-      setWorkers(data)
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setLoading(false)
+      return
     }
-    setLoading(false)
+
+    try {
+      const [{ data: wk }, { data: att }, { data: txn }] = await Promise.all([
+        supabase.from('workers').select('*').eq('user_id', userId),
+        supabase.from('attendance').select('*').eq('user_id', userId),
+        supabase.from('transactions').select('*').eq('user_id', userId)
+      ])
+
+      if (wk) setWorkers(wk)
+      if (att) setAttendance(att)
+      if (txn) setTransactions(txn)
+    } finally {
+      setLoading(false)
+    }
   }, [userId])
 
   useEffect(() => {
-    fetchWorkers()
-  }, [fetchWorkers])
+    refresh()
+  }, [refresh])
 
   // matchWorker: Given an extracted name, finds matches in current cached workers
   const matchWorker = useCallback((extractedName: string) => {
@@ -76,12 +86,23 @@ export function useWorkers(userId?: string | null) {
   }, [userId])
 
   // getWorkerSummaries: Compute the payroll view 
-  const getWorkerSummaries = useCallback((transactions: Transaction[]): WorkerSummary[] => {
+  const getWorkerSummaries = useCallback((): WorkerSummary[] => {
     return workers.map((w) => {
-      // Find all transactions mapped manually to this worker_id, or string matched if legacy
-      const px = transactions.filter(t => t.worker_id === w.id || (t.name === w.name && !t.worker_id))
+      // Standardize mapping: match by ID if possible, otherwise by name
+      const px = transactions.filter(t => {
+        if (!t) return false
+        const matchesId = t.worker_id && String(t.worker_id).trim() === String(w.id).trim()
+        const matchesName = t.name && String(t.name).toLowerCase() === String(w.name).toLowerCase()
+        return !!(matchesId || matchesName)
+      })
       
-      const totalDays = px.filter(t => t.action === 'ATTENDANCE').reduce((s, t) => s + t.amount, 0)
+      // Calculate total days from actual attendance records
+      const workerAtt = attendance.filter(a => a.worker_id === w.id)
+      const totalDays = workerAtt.reduce((sum, a) => {
+        const multiplier = a.status === 'present' ? 1 : a.status === 'half' ? 0.5 : 0
+        return sum + multiplier
+      }, 0)
+
       const totalAdvances = px.filter(t => t.action === 'ADVANCE' || t.action === 'UDHAAR').reduce((s, t) => s + t.amount, 0)
       const totalPayments = px.filter(t => t.action === 'PAYMENT').reduce((s, t) => s + t.amount, 0)
       
@@ -91,18 +112,19 @@ export function useWorkers(userId?: string | null) {
 
       // Get last seen transaction date
       const sortedPx = [...px].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      const lastSeen = sortedPx.length > 0 ? sortedPx[0].created_at : null
+      const lastSeen = sortedPx.length > 0 ? sortedPx[0].created_at : (workerAtt.length > 0 ? workerAtt[0].date : null)
 
       return {
         worker: w,
         totalDays,
         totalAdvances,
         totalPayments,
+        earnedWages,
         wagesDue,
         lastSeen,
       }
     })
-  }, [workers])
+  }, [workers, attendance, transactions])
 
-  return { workers, loading, matchWorker, createWorker, getWorkerSummaries, refresh: fetchWorkers }
+  return { workers, loading, matchWorker, createWorker, getWorkerSummaries, refresh }
 }

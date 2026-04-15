@@ -3,13 +3,12 @@
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/',          label: 'Home',        icon: 'mic'           },
-  { href: '/hajiri',    label: 'Hajiri',      icon: 'fact_check'    },
-  { href: '/workers',   label: 'Mazdoor',     icon: 'engineering'   },
-  { href: '/saathi',    label: 'Saathi AI',   icon: 'smart_toy'     },
-  { href: '/safety',    label: 'Site Safety', icon: 'shield'        },
-  { href: '/khata',     label: 'Len-den',     icon: 'receipt_long'  },
-  { href: '/settings',  label: 'Settings',    icon: 'settings'      },
+  { href: '/',          label: 'Hisab Dashboard', icon: 'dashboard'      },
+  { href: '/hajiri',    label: 'Daily Hajiri',    icon: 'fact_check'    },
+  { href: '/workers',   label: 'Mazdoor (Payroll)', icon: 'engineering'   },
+  { href: '/saathi',    label: 'Ask Hisaab (AI)', icon: 'query_stats'     },
+  { href: '/khata',     label: 'Full Ledger',     icon: 'receipt_long'  },
+  { href: '/settings',  label: 'Account',         icon: 'settings'      },
 ]
 
 export default function Sidebar() {
@@ -25,23 +24,23 @@ export default function Sidebar() {
           <h1 className="font-headline font-extrabold text-xl text-white tracking-tight">
             VedaVoice
           </h1>
-          <p className="text-indigo-300 text-xs mt-0.5">Site Automation</p>
+          <p className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mt-0.5">Labour Ledger</p>
         </div>
-        <nav className="flex-1 px-3 py-6 space-y-1">
+        <nav className="flex-1 px-4 py-8 space-y-2">
           {navItems.map(item => {
             const isActive = pathname === item.href
             return (
               <a
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm
-                  transition-colors font-label font-semibold
+                className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-sm
+                  transition-all duration-200 font-label font-bold
                   ${isActive
-                    ? 'bg-white/15 text-white'
-                    : 'text-indigo-200 hover:bg-indigo-600 hover:text-white'}`}
+                    ? 'bg-white/10 text-white shadow-lg shadow-indigo-900/40 ring-1 ring-white/20'
+                    : 'text-indigo-200 hover:bg-white/5 hover:text-white'}`}
               >
                 <span
-                  className="material-symbols-outlined text-xl"
+                  className="material-symbols-outlined text-2xl"
                   style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
                 >
                   {item.icon}
